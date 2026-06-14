@@ -256,26 +256,53 @@ python run_daily.py --skip-upload
 python run_daily.py
 ```
 
-### 9. Subscribe on Apple Podcasts
+### 9. Subscribe and listen on Apple Watch
 
-1. Open Apple Podcasts on iPhone
-2. Search tab → top-right `...` → Add a Podcast by URL
-3. Enter: `https://YOUR_USERNAME.github.io/ai-dev-daily-podcast/feed.xml`
-4. Tap Subscribe
+Do this once on your iPhone — after that everything is automatic.
 
-**Enable auto-download to Watch:**
-- iPhone Podcasts → Settings → AI Dev Daily → Auto-Download: ON
-- Apple Watch Podcasts app → AI Dev Daily → Add to Library
+**Step 1 — Subscribe on iPhone**
+
+1. Open **Apple Podcasts** on iPhone
+2. Open **Safari** on iPhone, navigate to:
+   ```
+   https://visualphyzx.github.io/ai-dev-daily-podcast/feed.xml
+   ```
+   iOS will offer to open it in Podcasts automatically — tap **Open**
+   > Alternative: in Podcasts → **Library** → `+` → **Follow a Show by URL** → paste the URL above
+3. Tap **Follow**
+
+**Step 2 — Enable auto-download on iPhone**
+
+1. In Podcasts → **Library** → **AI Dev Daily**
+2. Tap `...` (top right) → **Settings**
+3. Set **Download Episodes** → **New Episodes**
+
+**Step 3 — Sync to Apple Watch**
+
+1. On iPhone open the **Watch** app
+2. Scroll down → **Podcasts**
+3. Under **Add Episodes From** → select **AI Dev Daily**
+4. Episodes sync to your Watch automatically overnight while both devices are charging
+
+**Step 4 — Listen during your workout**
+
+On your Apple Watch: **Podcasts app** → **Library** → **AI Dev Daily** → tap the episode → play.
+Connects directly to AirPods or any Bluetooth headphones paired to the Watch — no iPhone needed outdoors.
 
 ---
 
 ## Daily flow (automatic)
 
-- 5:00 AM UTC — GitHub Actions runs (always-on cloud backup)
-- 6:30 AM local — Windows Task Scheduler runs (if PC is on)
-- iPhone downloads episode overnight via WiFi
-- Apple Watch syncs during phone charge
-- Ready for your morning workout!
+```
+6:30 AM local   Windows Task Scheduler generates new episode (PC must be on)
+5:00 AM UTC     GitHub Actions generates episode (cloud backup, always runs)
+      ↓
+iPhone downloads episode automatically over WiFi
+      ↓
+Apple Watch syncs during overnight charge
+      ↓
+Morning workout → Watch Podcasts app → AI Dev Daily → Play
+```
 
 ---
 
