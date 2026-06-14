@@ -24,7 +24,7 @@ from datetime import datetime
 from typing import Optional
 
 PODCAST_NAME = "AI Dev Daily"
-HOST_NAME = "Alex"  # change to your preferred host name
+HOST_NAME = "Sophie"
 
 SCRIPT_PROMPT = """You are a podcast script writer for "{podcast_name}", a daily 60-minute show
 for software developers about the latest in AI tools, Claude Code, OpenAI Codex, LLMs,

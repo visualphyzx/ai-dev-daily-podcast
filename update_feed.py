@@ -119,12 +119,26 @@ def _blank_feed() -> str:
 </rss>"""
 
 
+def _get_audio_duration(mp3_path: str) -> int:
+    """Return actual audio duration in seconds using ffprobe."""
+    import subprocess
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1", mp3_path],
+        capture_output=True, text=True,
+    )
+    try:
+        return int(float(result.stdout.strip()))
+    except (ValueError, AttributeError):
+        return 0
+
+
 def add_episode_to_feed(feed_xml: str, date_tag: str, mp3_url: str, mp3_path: str,
                          title: str, description: str) -> str:
     """Insert a new <item> into the RSS feed."""
     pub_date = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
     file_size = Path(mp3_path).stat().st_size
-    duration_secs = 3600  # 60 minutes
+    duration_secs = _get_audio_duration(mp3_path)
 
     new_item = f"""    <item>
       <title>{title}</title>
