@@ -21,7 +21,7 @@ AZURE_KEY = os.environ["AZURE_SPEECH_KEY"]
 # en-GB-LibbyNeural: young female, England accent, supports "chat" style
 # Alternatives: en-GB-SoniaNeural (professional), en-GB-AbbiNeural (softer)
 VOICE_NAME = "en-GB-LibbyNeural"
-SPEECH_RATE = "-10%"
+SPEECH_RATE = "-5%"
 SPEECH_PITCH = "+3%"  # slight lift to keep energy up at slower rate
 
 TTS_ENDPOINT = f"https://{AZURE_REGION}.tts.speech.microsoft.com/cognitiveservices/v1"
