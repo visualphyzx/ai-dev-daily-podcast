@@ -81,7 +81,7 @@ PROVIDERS: dict[str, dict] = {
     },
     "deepseek": {
         "label": "DeepSeek",
-        "default_model": "deepseek-chat",
+        "default_model": "deepseek-v4-flash",  # deepseek-chat deprecated 2026-07-24
         "max_tokens": 8000,
         "env_key": "DEEPSEEK_API_KEY",
         "base_url": "https://api.deepseek.com/v1",
@@ -195,7 +195,9 @@ def generate_script(
         raise ValueError(f"Unknown provider '{provider}'. Choose from: {', '.join(PROVIDERS)}")
 
     cfg = PROVIDERS[provider]
-    chosen_model = model or os.environ.get("LLM_MODEL") or cfg["default_model"]
+    # LLM_MODEL env var only applies when it matches the active provider (set via LLM_PROVIDER)
+    env_model = os.environ.get("LLM_MODEL") if os.environ.get("LLM_PROVIDER", "") == provider else None
+    chosen_model = model or env_model or cfg["default_model"]
     max_tokens = cfg["max_tokens"]
 
     # Check required env var

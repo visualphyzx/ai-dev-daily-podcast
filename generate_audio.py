@@ -18,21 +18,23 @@ import requests
 AZURE_REGION = os.environ.get("AZURE_SPEECH_REGION", "australiaeast")
 AZURE_KEY = os.environ["AZURE_SPEECH_KEY"]
 
-# Neural voice — en-US-GuyNeural sounds great for podcasts
-# Alternatives: en-US-JennyNeural (female), en-US-DavisNeural, en-US-TonyNeural
-VOICE_NAME = "en-US-GuyNeural"
-SPEECH_RATE = "+5%"   # slightly faster for exercise listening
-SPEECH_PITCH = "0%"
+# en-GB-LibbyNeural: young female, England accent, supports "chat" style
+# Alternatives: en-GB-SoniaNeural (professional), en-GB-AbbiNeural (softer)
+VOICE_NAME = "en-GB-LibbyNeural"
+SPEECH_RATE = "-10%"
+SPEECH_PITCH = "+3%"  # slight lift to keep energy up at slower rate
 
 TTS_ENDPOINT = f"https://{AZURE_REGION}.tts.speech.microsoft.com/cognitiveservices/v1"
-MAX_CHARS_PER_CHUNK = 8000  # Azure limit is 10K, stay under
+MAX_CHARS_PER_CHUNK = 3500  # Free tier cuts off ~5-6K SSML chars; stay well under
 
 
 def text_to_ssml(text: str) -> str:
     # Escape XML special chars
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    # Insert a natural pause at paragraph breaks
+    text = re.sub(r'\n{2,}', ' <break time="600ms"/> ', text)
     return f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis"
-    xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="en-US">
+    xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="en-GB">
   <voice name="{VOICE_NAME}">
     <prosody rate="{SPEECH_RATE}" pitch="{SPEECH_PITCH}">
       {text}
@@ -58,7 +60,8 @@ def split_into_chunks(text: str, max_chars: int = MAX_CHARS_PER_CHUNK) -> list[s
     return chunks
 
 
-def synthesize_chunk(text: str, out_path: str) -> bool:
+def synthesize_chunk(text: str, out_path: str, retries: int = 3) -> bool:
+    import time
     headers = {
         "Ocp-Apim-Subscription-Key": AZURE_KEY,
         "Content-Type": "application/ssml+xml",
@@ -66,14 +69,20 @@ def synthesize_chunk(text: str, out_path: str) -> bool:
         "User-Agent": "AIPodcastGenerator/1.0",
     }
     ssml = text_to_ssml(text)
-    resp = requests.post(TTS_ENDPOINT, headers=headers, data=ssml.encode("utf-8"), timeout=60)
-    if resp.status_code == 200:
-        with open(out_path, "wb") as f:
-            f.write(resp.content)
-        return True
-    else:
-        print(f"  [ERROR] TTS chunk failed: {resp.status_code} {resp.text[:200]}")
-        return False
+    for attempt in range(1, retries + 1):
+        try:
+            resp = requests.post(TTS_ENDPOINT, headers=headers, data=ssml.encode("utf-8"), timeout=90)
+            if resp.status_code == 200:
+                with open(out_path, "wb") as f:
+                    f.write(resp.content)
+                return True
+            else:
+                print(f"  [ERROR] TTS chunk failed: {resp.status_code} {resp.text[:200]}")
+        except Exception as e:
+            print(f"  [WARN] Attempt {attempt}/{retries} failed: {e}")
+            if attempt < retries:
+                time.sleep(3 * attempt)
+    return False
 
 
 def concatenate_mp3s(chunk_paths: list[str], output_path: str) -> bool:

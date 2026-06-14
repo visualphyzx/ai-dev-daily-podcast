@@ -63,10 +63,12 @@ DeepSeek V3 is ~10× cheaper than Claude for this task (~$0.003/episode).
 **DeepSeek models available:**
 | Model | Best for | Context |
 |-------|----------|---------|
-| `deepseek-chat` | General use, fast (default) | 64K tokens |
-| `deepseek-reasoner` | Complex analysis, slower | 64K tokens |
+| `deepseek-v4-flash` | General use, fast (default) | 64K tokens |
+| `deepseek-v4-pro` | Complex analysis, slower | 64K tokens |
 
-> **Note:** DeepSeek servers can be slow during peak hours (China business hours, ~01:00–10:00 UTC). The pipeline has no retries built in — if it fails, re-run manually or the GitHub Actions fallback will catch it.
+> **Note:** `deepseek-chat` is deprecated as of 2026-07-24 — use `deepseek-v4-flash` instead (already the default in this pipeline).
+
+> **Note:** DeepSeek servers can be slow during peak hours (China business hours, ~01:00–10:00 UTC). If script generation fails, re-run manually or the GitHub Actions fallback will catch it.
 
 ---
 
@@ -86,21 +88,20 @@ DeepSeek V3 is ~10× cheaper than Claude for this task (~$0.003/episode).
 
 ---
 
-#### Option D — Groq (free, fast, recommended if you don't want to pay)
+#### Option D — Groq (cheapest paid, ~$0.54/month, recommended)
 
-Groq runs Llama models on custom silicon — it's free, has a generous daily quota, and is very fast.
+Groq runs Llama models on custom silicon — very fast and the best quality-per-dollar option.
+Cost: ~$0.018/episode ($0.59/M input + $0.79/M output tokens).
 
 1. Go to [https://console.groq.com](https://console.groq.com) and sign up (Google/GitHub login available)
 2. Go to **API Keys** → **Create API Key**, copy the key (starts with `gsk_`)
-3. No credit card required for the free tier
+3. Add a payment method and top up (minimum varies — typically $5 covers months of use)
 4. Set in `.env`:
    ```
    LLM_PROVIDER=groq
    GROQ_API_KEY=gsk_your-key-here
    ```
 5. Test: `python run_daily.py --provider groq --script-only`
-
-**Free tier limits:** 14,400 tokens/min, 500,000 tokens/day — more than enough for one episode/day (~10K tokens output).
 
 **Available models:**
 | Model | Speed | Quality |
@@ -184,8 +185,9 @@ python run_daily.py --list-providers   # see all options
 **Azure Speech** (for TTS audio):
 - Go to https://portal.azure.com
 - Create resource → "Speech" (Cognitive Services)
-- Free tier (F0): 500K neural chars/month (~11 episodes free, then $16/1M chars)
-- Copy your Key 1 and Region from the resource
+- Free tier (F0): 500K chars/month, but **per-request limit is ~3,500 chars** — the pipeline chunks automatically to work within this
+- Paid tier (S0): $16/1M chars, no per-request limit — upgrade if you want fewer chunks / faster synthesis
+- Copy your **Key 1** and **Region** from the resource (e.g. `australiaeast`)
 
 **GitHub Token** (for uploading releases + updating feed):
 - https://github.com/settings/tokens → Generate new token (classic)
@@ -207,7 +209,7 @@ In your repo → Settings → Secrets and variables → Actions → New reposito
 Required for everyone:
 - `LLM_PROVIDER` — e.g. `deepseek`
 - `AZURE_SPEECH_KEY`
-- `AZURE_SPEECH_REGION` (e.g., `eastus`)
+- `AZURE_SPEECH_REGION` — your Azure region, e.g. `australiaeast`
 - `PODCAST_EMAIL`
 
 Add only the key for your chosen provider:
@@ -215,6 +217,8 @@ Add only the key for your chosen provider:
 - `ANTHROPIC_API_KEY` — if using Claude
 - `OPENAI_API_KEY` — if using OpenAI
 - `GEMINI_API_KEY` — if using Gemini
+- `GROQ_API_KEY` — if using Groq
+- `OPENROUTER_API_KEY` — if using OpenRouter
 
 (GITHUB_TOKEN is automatically provided by Actions)
 
@@ -281,21 +285,33 @@ Edit `collect_news.py` → `FEEDS` list to add/remove sources.
 
 Edit `generate_script.py` → `HOST_NAME` and `SCRIPT_PROMPT` to adjust tone, topics, structure.
 
-Edit `generate_audio.py` → `VOICE_NAME` for different voices:
-- `en-US-GuyNeural` — male, clear (default)
-- `en-US-JennyNeural` — female, warm
-- `en-US-DavisNeural` — male, deeper
-- `SPEECH_RATE = "+10%"` — faster for exercise
+Edit `generate_audio.py` to change voice or speed:
+
+**Current settings:**
+- `VOICE_NAME = "en-GB-LibbyNeural"` — young female, England accent (default)
+- `SPEECH_RATE = "-10%"` — slightly slower than normal for relaxed listening
+- `SPEECH_PITCH = "+3%"` — slight lift to keep energy up
+
+**Other voices to try:**
+| Voice | Style |
+|-------|-------|
+| `en-GB-SoniaNeural` | Female, UK, professional |
+| `en-GB-AbbiNeural` | Female, UK, softer |
+| `en-US-JennyNeural` | Female, US, warm |
+| `en-US-GuyNeural` | Male, US, clear |
+| `en-AU-NatashaNeural` | Female, Australian |
+
+> **Free tier note:** Azure F0 has a ~3,500 char per-request limit. `MAX_CHARS_PER_CHUNK = 3500` in `generate_audio.py` is set accordingly — don't increase it on the free tier.
 
 ---
 
 ## Cost estimate (monthly, 30 episodes)
 
-| Service | Groq | OpenRouter | DeepSeek | Claude | Ollama |
-|---------|------|------------|----------|--------|--------|
-| LLM (script) | **Free** | **Free** | ~$0.09 | ~$1.20 | **Free** |
+| Service | Ollama | Groq | DeepSeek | Claude | OpenAI |
+|---------|--------|------|----------|--------|--------|
+| LLM (script) | **Free** | ~$0.54 | ~$0.09 | ~$1.20 | ~$2.00 |
 | Azure TTS | ~$0.13 | ~$0.13 | ~$0.13 | ~$0.13 | ~$0.13 |
 | GitHub storage | Free | Free | Free | Free | Free |
-| **Monthly total** | **~$0.13** | **~$0.13** | **~$0.22** | **~$1.33** | **~$0.13** |
+| **Monthly total** | **~$0.13** | **~$0.67** | **~$0.22** | **~$1.33** | **~$2.13** |
 
-> Gemini requires billing enabled — not truly free. OpenAI (~$2/mo) omitted for brevity.
+> Gemini requires billing enabled. OpenRouter has some permanently free models but with rate limits and variable availability.
