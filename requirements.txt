@@ -4,4 +4,5 @@ requests>=2.32.0
 # LLM providers — install only what you use
 anthropic>=0.40.0          # for --provider claude
 openai>=1.30.0             # for --provider openai, deepseek, or ollama
-google-generativeai>=0.8.0 # for --provider gemini
+google-genai>=1.0.0        # for --provider gemini (requires billing)
+# groq, openrouter, and ollama use the openai package (already listed above)

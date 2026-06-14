@@ -1,0 +1,69 @@
+name: Daily AI Podcast
+
+on:
+  schedule:
+    # Run at 5:00 AM UTC daily (adjust to your timezone)
+    # UTC 5am = US Eastern 1am, US Pacific 9pm prev day
+    # For UTC+8 (China/Singapore): 5am UTC = 1pm local
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: "LLM provider (claude/openai/deepseek/gemini/groq/openrouter)"
+        default: "groq"
+        required: false
+      model:
+        description: "Model override (leave blank for default)"
+        required: false
+
+jobs:
+  generate-episode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install ffmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Run podcast pipeline
+        env:
+          LLM_PROVIDER: ${{ github.event.inputs.provider || secrets.LLM_PROVIDER || 'groq' }}
+          LLM_MODEL: ${{ github.event.inputs.model || secrets.LLM_MODEL || '' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+          PODCAST_EMAIL: ${{ secrets.PODCAST_EMAIL }}
+        run: |
+          ARGS=""
+          [ -n "$LLM_MODEL" ] && ARGS="--model $LLM_MODEL"
+          python run_daily.py --provider "$LLM_PROVIDER" $ARGS
+
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-files
+          path: |
+            news_*.json
+            script_*.txt
+          retention-days: 3

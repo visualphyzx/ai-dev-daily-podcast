@@ -92,9 +92,23 @@ PROVIDERS: dict[str, dict] = {
         "max_tokens": 12000,
         "env_key": "GEMINI_API_KEY",
     },
+    "groq": {
+        "label": "Groq (free tier)",
+        "default_model": "llama-3.3-70b-versatile",
+        "max_tokens": 8000,
+        "env_key": "GROQ_API_KEY",
+        "base_url": "https://api.groq.com/openai/v1",
+    },
+    "openrouter": {
+        "label": "OpenRouter (free models)",
+        "default_model": "meta-llama/llama-3.3-70b-instruct:free",
+        "max_tokens": 8000,
+        "env_key": "OPENROUTER_API_KEY",
+        "base_url": "https://openrouter.ai/api/v1",
+    },
     "ollama": {
         "label": "Ollama (local)",
-        "default_model": "llama3.1:8b",
+        "default_model": "gemma4:12b",
         "max_tokens": 8000,
         "env_key": None,  # no key required
         "base_url": "http://localhost:11434/v1",
@@ -118,7 +132,7 @@ def _call_claude(prompt: str, model: str, max_tokens: int) -> str:
 
 
 def _call_openai_compat(prompt: str, model: str, max_tokens: int, base_url: str, api_key: str) -> str:
-    """Shared implementation for OpenAI, DeepSeek, Ollama (all OpenAI-compatible)."""
+    """Shared implementation for OpenAI, DeepSeek, Groq, OpenRouter."""
     from openai import OpenAI
     client = OpenAI(api_key=api_key, base_url=base_url)
     response = client.chat.completions.create(
@@ -129,13 +143,37 @@ def _call_openai_compat(prompt: str, model: str, max_tokens: int, base_url: str,
     return response.choices[0].message.content
 
 
+def _call_ollama(prompt: str, model: str, max_tokens: int, base_url: str) -> str:
+    """Ollama via OpenAI-compatible API with num_ctx set large enough for a full episode.
+
+    Rule of thumb for this pipeline:
+      - Input (prompt + news JSON): ~15,000 tokens
+      - Output (8,500-word script):  ~11,000 tokens
+      - Total needed:                ~26,000 tokens
+    We set num_ctx=32768 (32K) as the safe default.
+    Gemma 4 and Qwen 2.5 support up to 128K — raise OLLAMA_NUM_CTX if you want longer output.
+    """
+    from openai import OpenAI
+    num_ctx = int(os.environ.get("OLLAMA_NUM_CTX", 32768))
+    client = OpenAI(api_key="ollama", base_url=base_url)
+    response = client.chat.completions.create(
+        model=model,
+        max_tokens=max_tokens,
+        messages=[{"role": "user", "content": prompt}],
+        extra_body={"options": {"num_ctx": num_ctx}},
+    )
+    print(f"  [Ollama] num_ctx={num_ctx}")
+    return response.choices[0].message.content
+
+
 def _call_gemini(prompt: str, model: str, max_tokens: int) -> str:
-    import google.generativeai as genai
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    client = genai.GenerativeModel(model)
-    response = client.generate_content(
-        prompt,
-        generation_config={"max_output_tokens": max_tokens},
+    from google import genai
+    from google.genai import types
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    response = client.models.generate_content(
+        model=model,
+        contents=prompt,
+        config=types.GenerateContentConfig(max_output_tokens=max_tokens),
     )
     return response.text
 
@@ -197,13 +235,23 @@ def generate_script(
     elif provider == "gemini":
         script = _call_gemini(prompt, chosen_model, max_tokens)
 
-    elif provider == "ollama":
-        base_url = os.environ.get("OLLAMA_BASE_URL", cfg["base_url"])
+    elif provider == "groq":
         script = _call_openai_compat(
             prompt, chosen_model, max_tokens,
-            base_url=base_url,
-            api_key="ollama",  # Ollama ignores the key but the SDK requires a non-empty value
+            base_url=cfg["base_url"],
+            api_key=os.environ["GROQ_API_KEY"],
         )
+
+    elif provider == "openrouter":
+        script = _call_openai_compat(
+            prompt, chosen_model, max_tokens,
+            base_url=cfg["base_url"],
+            api_key=os.environ["OPENROUTER_API_KEY"],
+        )
+
+    elif provider == "ollama":
+        base_url = os.environ.get("OLLAMA_BASE_URL", cfg["base_url"])
+        script = _call_ollama(prompt, chosen_model, max_tokens, base_url)
 
     word_count = len(script.split())
     print(f"Script generated: {word_count:,} words (~{word_count // 140} min at 140wpm)")
