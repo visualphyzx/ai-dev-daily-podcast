@@ -1,0 +1,10 @@
+.env
+*.mp3
+news_*.json
+script_*.txt
+episode_*.txt
+run_with_env.ps1
+__pycache__/
+*.pyc
+.venv/
+venv/
