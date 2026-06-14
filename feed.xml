@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>AI Dev Daily</title>
+    <link>https://visualphyzx.github.io/ai-dev-daily-podcast</link>
+    <description>Daily 60-minute podcast for developers on the latest AI tools, Claude Code, Codex, LLMs, and best practices.</description>
+    <language>en-us</language>
+    <itunes:author>AI Dev Daily</itunes:author>
+    <itunes:email>visualphyzx.ai.podcast@gmail.com</itunes:email>
+    <itunes:category text="Technology"/>
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:type>episodic</itunes:type>
+    <item>
+      <title>AI Dev Daily — Sunday, June 14, 2026</title>
+      <description>Good morning, and welcome to AI Dev Daily. I'm Alex, and today is Sunday, June 14, 2026. We have a packed show ahead today as we dive into some significant shifts in how we approach web-based Python e...</description>
+      <pubDate>Sun, 14 Jun 2026 11:05:13 +0000</pubDate>
+      <enclosure url="https://github.com/visualphyzx/ai-dev-daily-podcast/releases/download/2026-06-14/episode_2026-06-14.mp3" length="14996781" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://visualphyzx.github.io/ai-dev-daily-podcast/episodes/2026-06-14</guid>
+      <itunes:duration>3600</itunes:duration>
+      <itunes:episodeType>full</itunes:episodeType>
+    </item>
+  </channel>
+</rss>
