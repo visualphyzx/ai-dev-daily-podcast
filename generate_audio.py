@@ -15,7 +15,7 @@ from typing import Optional
 import requests
 
 # Azure TTS config
-AZURE_REGION = os.environ.get("AZURE_SPEECH_REGION", "eastus")
+AZURE_REGION = os.environ.get("AZURE_SPEECH_REGION", "australiaeast")
 AZURE_KEY = os.environ["AZURE_SPEECH_KEY"]
 
 # Neural voice — en-US-GuyNeural sounds great for podcasts
