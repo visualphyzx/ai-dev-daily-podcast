@@ -12,6 +12,15 @@
     <itunes:explicit>false</itunes:explicit>
     <itunes:type>episodic</itunes:type>
     <item>
+      <title>AI Dev Daily — Monday, August 31, 2026</title>
+      <description>Good morning, and welcome to AI Dev Daily. I'm Sophie, and today is Monday, August 31, 2026. Happy Monday, everyone. Whether you're heading into the office, settling in with your coffee, or getting yo...</description>
+      <pubDate>Mon, 31 Aug 2026 10:05:33 +0000</pubDate>
+      <enclosure url="https://github.com/visualphyzx/ai-dev-daily-podcast/releases/download/2026-08-31/episode_2026-08-31.mp3" length="55719981" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://visualphyzx.github.io/ai-dev-daily-podcast/episodes/2026-08-31</guid>
+      <itunes:duration>2321</itunes:duration>
+      <itunes:episodeType>full</itunes:episodeType>
+    </item>
+    <item>
       <title>AI Dev Daily — Sunday, August 30, 2026</title>
       <description>Good morning, and welcome to AI Dev Daily. I'm Sophie, and today is Sunday, August 30, 2026. Happy last Sunday of August. I don't know about you, but this feels like the final weekend of summer, and i...</description>
       <pubDate>Sun, 30 Aug 2026 02:58:36 +0000</pubDate>
